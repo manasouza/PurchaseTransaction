@@ -29,12 +29,12 @@ public class PurchaseTransactionService {
 
     public UUID storePurchaseTransaction(PurchaseTransactionRequest transactionDTO) {
         log.info("Creating Purchase Transaction: {}", transactionDTO);
-        return purchaseTransactionRepository.create(mapper.toEntity(transactionDTO)).getId();
+        return purchaseTransactionRepository.save(mapper.toEntity(transactionDTO)).getId();
     }
 
     public Collection<PurchaseTransaction> getPurchaseTransactionByCountryCurrency(String country, String currency,
                                                                                    LocalDate purchaseDate, int pageNumber, int pageSize) {
-        List<PurchaseTransaction> transactionsByDate = purchaseTransactionRepository.findByDate(purchaseDate);
+        List<PurchaseTransaction> transactionsByDate = purchaseTransactionRepository.findByTransactionDate(purchaseDate);
         if (transactionsByDate.isEmpty()) {
             log.info("No transaction record found at {}", purchaseDate);
         } else {

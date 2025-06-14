@@ -85,7 +85,7 @@ public class ExchangeRateService {
      * Interpret the line with the following headers:
      *  Record Date,Country - Currency Description,Exchange Rate,Effective Date
      * @param line the CSV line
-     * @return
+     * @return ExchangeRate
      */
     private ExchangeRate parseLine(String line) {
         String[] tokens = line.split(",");

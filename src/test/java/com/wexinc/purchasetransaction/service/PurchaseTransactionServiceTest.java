@@ -46,7 +46,7 @@ public class PurchaseTransactionServiceTest {
         BigDecimal purchaseAmount = new BigDecimal(value);
         PurchaseTransaction createdTransaction = new PurchaseTransaction(transactionDate, purchaseAmount, description);
         createdTransaction.setId(UUID.randomUUID());
-        when(ptRepository.create(new PurchaseTransaction(transactionDate, purchaseAmount, description)))
+        when(ptRepository.save(new PurchaseTransaction(transactionDate, purchaseAmount, description)))
                 .thenReturn(createdTransaction);
         // WHEN
         UUID storedTransactionId = service.storePurchaseTransaction(transaction);
@@ -72,7 +72,7 @@ public class PurchaseTransactionServiceTest {
         storedTransaction.setId(UUID.randomUUID());
         when(erService.getExchangeRate(country, currency, purchaseDate, pageNumber, pageSize))
                 .thenReturn(exchangeRate);
-        when(ptRepository.findByDate(purchaseDate)).thenReturn(List.of(storedTransaction));
+        when(ptRepository.findByTransactionDate(purchaseDate)).thenReturn(List.of(storedTransaction));
         // WHEN
         Collection<PurchaseTransaction> purchaseTransactions = service.getPurchaseTransactionByCountryCurrency(country,
                 currency, purchaseDate, pageNumber, pageSize);
@@ -100,7 +100,7 @@ public class PurchaseTransactionServiceTest {
         PurchaseTransaction storedTransaction = new PurchaseTransaction(purchaseDate, purchaseAmount, "");
         storedTransaction.setId(UUID.randomUUID());
         when(erService.getExchangeRate(country, currency, purchaseDate, pageNumber, pageSize)).thenReturn(Optional.empty());
-        when(ptRepository.findByDate(purchaseDate)).thenReturn(List.of(storedTransaction));
+        when(ptRepository.findByTransactionDate(purchaseDate)).thenReturn(List.of(storedTransaction));
         // WHEN
         Collection<PurchaseTransaction> purchaseTransactions = service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDate, pageNumber, pageSize);
         // THEN
@@ -112,7 +112,7 @@ public class PurchaseTransactionServiceTest {
         // GIVEN
         LocalDate purchaseDate = LocalDate.now();
         // GIVEN mocks
-        when(ptRepository.findByDate(purchaseDate)).thenReturn(Collections.emptyList());
+        when(ptRepository.findByTransactionDate(purchaseDate)).thenReturn(Collections.emptyList());
         // WHEN
         Collection<PurchaseTransaction> purchaseTransactions = service.getPurchaseTransactionByCountryCurrency("country",
                 "currency", purchaseDate, 1, 10);
@@ -138,7 +138,7 @@ public class PurchaseTransactionServiceTest {
         storedTransaction.setId(UUID.randomUUID());
         when(erService.getExchangeRate(country, currency, purchaseDate, pageNumber, pageSize))
                 .thenReturn(exchangeRate);
-        when(ptRepository.findByDate(purchaseDate)).thenReturn(List.of(storedTransaction));
+        when(ptRepository.findByTransactionDate(purchaseDate)).thenReturn(List.of(storedTransaction));
         // WHEN / THEN
         assertThrows(TransactionValidationException.class, () -> service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDate, pageNumber, pageSize));
     }

@@ -33,13 +33,14 @@ public class PurchaseTransactionService {
     }
 
     public Collection<PurchaseTransaction> getPurchaseTransactionByCountryCurrency(String country, String currency,
-                                                                                   LocalDate purchaseDate) {
+                                                                                   LocalDate purchaseDate, int pageNumber, int pageSize) {
         List<PurchaseTransaction> transactionsByDate = purchaseTransactionRepository.findByDate(purchaseDate);
         if (transactionsByDate.isEmpty()) {
             log.info("No transaction record found at {}", purchaseDate);
         } else {
             log.info("Transactions found: {}", transactionsByDate);
-            Optional<ExchangeRate> exchangeRate = exchangeRateService.getExchangeRate(country, currency, purchaseDate);
+            Optional<ExchangeRate> exchangeRate = exchangeRateService.getExchangeRate(country, currency, purchaseDate,
+                    pageNumber, pageSize);
             if (exchangeRate.isPresent()) {
                 log.info("Exchange rate found: {}", exchangeRate.get());
                 if (purchaseDate.minusMonths(6).isAfter(exchangeRate.get().getEffectiveDate())) {

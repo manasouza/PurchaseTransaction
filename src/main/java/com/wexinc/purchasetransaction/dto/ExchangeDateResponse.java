@@ -1,19 +1,29 @@
 package com.wexinc.purchasetransaction.dto;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class ExchangeDateResponse {
 
     private List<ExchangeRateDto> data;
+    private ExternalMeta meta;
+    private ExternalLinks links;
 
-    // Optionally include `meta` field if needed
-    // private MetaDto meta;
-
-    public List<ExchangeRateDto> getData() {
-        return data;
+    @Getter
+    public static class ExternalMeta {
+        private int count;
+        private int totalCount;   // note JSON “total‑count”
+        private int totalPages;
     }
 
-    public void setData(List<ExchangeRateDto> data) {
-        this.data = data;
+    @Getter
+    public static class ExternalLinks {
+        private String self;
+        private String first;
+        private String prev;
+        private String next;
+        private String last;
     }
 }

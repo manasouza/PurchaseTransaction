@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -111,7 +110,8 @@ public class PurchaseTransactionControllerTest {
         String currency = "Real";
         String country = "Brazil";
         LocalDate purchaseDate = LocalDate.parse(date, DATE_FORMATTER);
-        when(service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDate)).thenThrow(TransactionValidationException.class);
+        when(service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDate, 1, 500))
+                .thenThrow(TransactionValidationException.class);
         // WHEN
         mvc.perform(get("/v1/purchaseTransaction")
                         .queryParam("country", country)
@@ -137,7 +137,7 @@ public class PurchaseTransactionControllerTest {
         purchaseTransaction.setId(transactionId);
         purchaseTransaction.setConvertedAmount(convertedAmount);
         purchaseTransaction.setExchangeRate(exchangeRate);
-        when(service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDateConverted))
+        when(service.getPurchaseTransactionByCountryCurrency(country, currency, purchaseDateConverted, 1, 500))
                 .thenReturn(List.of(purchaseTransaction));
         // WHEN
         mvc.perform(get("/v1/purchaseTransaction")

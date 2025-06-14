@@ -1,7 +1,6 @@
 package com.wexinc.purchasetransaction.service;
 
 import com.wexinc.purchasetransaction.dto.ExchangeDateResponse;
-import com.wexinc.purchasetransaction.dto.ExchangeRateDto;
 import com.wexinc.purchasetransaction.dto.ExchangeRateMapper;
 import com.wexinc.purchasetransaction.entity.ExchangeRate;
 import com.wexinc.purchasetransaction.repository.ExchangeRateRepository;
@@ -23,12 +22,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.wexinc.purchasetransaction.utils.Constants.EXCHANGE_RATES_URL;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExchangeRateService {
+
+    public static final String EXCHANGE_RATES_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?page[number]=%d&page[size]=%d&sort=-record_date&fields=record_date,country,currency,exchange_rate,effective_date";
 
     @NonNull
     private final ExchangeRateRepository repository;
@@ -55,16 +54,23 @@ public class ExchangeRateService {
     /**
      * Retrieve the Exchange Rate from API integration. As a fallback it searches from Exchange repository for previously
      * imported data
-     * @param country the country name
-     * @param currency the currency name
+     *
+     * @param country      the country name
+     * @param currency     the currency name
      * @param purchaseDate the date or the purchase transaction
+     * @param pageNumber   the page number that relates to the data from Exchange Rates integration
+     * @param pageSize     the page size that relates to the data from Exchange Rates integration
      * @return the ExchangeRate object
      */
-    Optional<ExchangeRate> getExchangeRate(String country, String currency, LocalDate purchaseDate) {
-        ResponseEntity<ExchangeDateResponse> response = restTemplate.exchange(EXCHANGE_RATES_URL,
+    Optional<ExchangeRate> getExchangeRate(String country, String currency, LocalDate purchaseDate, int pageNumber,
+                                           int pageSize) {
+        ResponseEntity<ExchangeDateResponse> response = restTemplate.exchange(String.format(EXCHANGE_RATES_URL, pageNumber, pageSize),
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return response.getBody().getData().stream()
+        ExchangeDateResponse body = response.getBody();
+        if (response.getStatusCode().is2xxSuccessful() && body != null && !body.getData().isEmpty()) {
+            ExchangeDateResponse.ExternalMeta meta = body.getMeta();
+            ExchangeDateResponse.ExternalLinks links = body.getLinks();
+            return body.getData().stream()
                     .map(mapper::toEntity)
                     .sorted(Comparator.comparing(ExchangeRate::getEffectiveDate).reversed())
                     .filter(er -> country.equals(er.getCountry()) && currency.equals(er.getCurrency())

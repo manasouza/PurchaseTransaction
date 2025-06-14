@@ -48,10 +48,15 @@ public class PurchaseTransactionController {
     public ResponseEntity<Collection<PurchaseTransactionResponse>> retrievePurchaseTransaction(
             @Parameter(description = "The country to refer to respective currency") @RequestParam String country,
             @Parameter(description = "The currency to convert the purchase transaction") @RequestParam String currency,
-            @Parameter(description = "The transaction date of purchase") @RequestParam String purchaseDate) {
+            @Parameter(description = "The transaction date of purchase") @RequestParam String purchaseDate,
+            @Parameter(description = "Page number that relates to the data from Exchange Rates API integration")
+                @RequestParam(defaultValue = "1") int pageNumber,
+            @Parameter(description = "Page size that relates to the data from Exchange Rates API integration")
+                @RequestParam(defaultValue = "500") int pageSize) {
         try {
             LocalDate pDate = LocalDate.parse(purchaseDate, DATE_FORMATTER);
-            Collection<PurchaseTransaction> transactions = service.getPurchaseTransactionByCountryCurrency(country, currency, pDate);
+            Collection<PurchaseTransaction> transactions = service.getPurchaseTransactionByCountryCurrency(country,
+                    currency, pDate, pageNumber, pageSize);
             return ResponseEntity.ok(transactions.stream()
                     .map(mapper::toDto)
                     .toList());

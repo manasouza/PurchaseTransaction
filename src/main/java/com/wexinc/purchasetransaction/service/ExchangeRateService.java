@@ -13,6 +13,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
@@ -70,9 +72,15 @@ public class ExchangeRateService {
      */
     Optional<ExchangeRate> getExchangeRate(String country, String currency, LocalDate purchaseDate, int pageNumber,
                                            int pageSize) {
-        ResponseEntity<ExchangeDateResponse> response = restTemplate.exchange(
-                String.format(EXCHANGE_RATES_URL, pageNumber, pageSize, sortby, fields),
-                HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+        ResponseEntity<ExchangeDateResponse> response;
+        try {
+            response = restTemplate.exchange(
+                    String.format(EXCHANGE_RATES_URL, pageNumber, pageSize, sortby, fields),
+                    HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+        } catch (RestClientException e) {
+            log.info("Accessing local imported data");
+            return repository.findMostRecentByCountryAndCurrency(country, currency, purchaseDate);
+        }
         ExchangeDateResponse body = response.getBody();
         if (response.getStatusCode().is2xxSuccessful() && body != null && !body.getData().isEmpty()) {
             ExchangeDateResponse.ExternalMeta meta = body.getMeta();
@@ -84,6 +92,7 @@ public class ExchangeRateService {
                                     && (purchaseDate.equals(er.getEffectiveDate()) || purchaseDate.isAfter(er.getEffectiveDate())))
                     .findFirst();
         } else {
+            log.info("Accessing local imported data");
             return repository.findMostRecentByCountryAndCurrency(country, currency, purchaseDate);
         }
     }

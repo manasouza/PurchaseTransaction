@@ -112,4 +112,21 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.4.6</version> <!-- match your Spring Boot version -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal> <!-- This makes the jar executable -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

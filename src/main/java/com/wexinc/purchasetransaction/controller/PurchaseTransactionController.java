@@ -7,6 +7,10 @@ import com.wexinc.purchasetransaction.entity.PurchaseTransaction;
 import com.wexinc.purchasetransaction.service.PurchaseTransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -37,18 +41,44 @@ public class PurchaseTransactionController {
     private final PurchaseTransactionMapper mapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Stores a new Purchase Transaction with date, value and description")
+    @Operation(summary = "Stores a new Purchase Transaction with date, value and description",
+        responses = {
+            @ApiResponse(responseCode = "201", description = "successfully created. It returns the transaction id",
+                    content = @Content(schema = @Schema(type = "string", example = "da4f6dd8-5a41-4225-9604-56863c48e11e"))),
+            @ApiResponse(responseCode = "400", description = "wrong request body",
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            value = """
+                                    {
+                                    	"timestamp": "2025-06-15T22:09:41.526+00:00",
+                                    	"status": 400,
+                                    	"error": "Bad Request",
+                                    	"path": "/v1/purchaseTransaction"
+                                    }
+                                    """
+                    ))),
+            @ApiResponse(responseCode = "500", description = "any internal server error", content = @Content)
+        })
     public ResponseEntity<String> storePurchaseTransaction(@Valid @RequestBody PurchaseTransactionRequest purchaseTransactionRequest) {
         UUID id = service.storePurchaseTransaction(purchaseTransactionRequest);
         return new ResponseEntity<>(id.toString(), HttpStatus.CREATED);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Retrieves a Purchase Transaction given the transaction date and the country currency information")
+    @Operation(summary = "Retrieves a Purchase Transaction given the transaction date and the country currency information",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "successfully returned"),
+            @ApiResponse(responseCode = "400", description = "wrong query parameters", content = @Content),
+            @ApiResponse(responseCode = "422", description = "when transaction period exceeds exchage rate from more than 6 months",
+                content = @Content),
+            @ApiResponse(responseCode = "500", description = "any internal server error", content = @Content)
+        })
     public ResponseEntity<Collection<PurchaseTransactionResponse>> retrievePurchaseTransaction(
-            @Parameter(description = "The country to refer to respective currency") @RequestParam String country,
-            @Parameter(description = "The currency to convert the purchase transaction") @RequestParam String currency,
-            @Parameter(description = "The transaction date of purchase") @RequestParam String purchaseDate,
+            @Parameter(description = "The country to refer to respective currency", example = "Brazil")
+                @RequestParam String country,
+            @Parameter(description = "The currency to convert the purchase transaction", example = "Real")
+                @RequestParam String currency,
+            @Parameter(description = "The transaction date of purchase in the format yyyy-MM-dd", example = "2025-06-01")
+                @RequestParam String purchaseDate,
             @Parameter(description = "Page number that relates to the data from Exchange Rates API integration")
                 @RequestParam(defaultValue = "1") int pageNumber,
             @Parameter(description = "Page size that relates to the data from Exchange Rates API integration")

@@ -8,6 +8,7 @@ import com.wexinc.purchasetransaction.utils.Constants;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ExchangeRateService {
 
-    public static final String EXCHANGE_RATES_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?page[number]=%d&page[size]=%d&sort=-record_date&fields=record_date,country,currency,exchange_rate,effective_date";
+    public static final String EXCHANGE_RATES_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?page[number]=%d&page[size]=%d&sort=%s&fields=%s";
+
+    @Value("${exchangerate.api.sortby}")
+    private String sortby;
+    @Value("${exchangerate.api.fields}")
+    private String fields;
 
     @NonNull
     private final ExchangeRateRepository repository;
@@ -64,7 +70,8 @@ public class ExchangeRateService {
      */
     Optional<ExchangeRate> getExchangeRate(String country, String currency, LocalDate purchaseDate, int pageNumber,
                                            int pageSize) {
-        ResponseEntity<ExchangeDateResponse> response = restTemplate.exchange(String.format(EXCHANGE_RATES_URL, pageNumber, pageSize),
+        ResponseEntity<ExchangeDateResponse> response = restTemplate.exchange(
+                String.format(EXCHANGE_RATES_URL, pageNumber, pageSize, sortby, fields),
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
         ExchangeDateResponse body = response.getBody();
         if (response.getStatusCode().is2xxSuccessful() && body != null && !body.getData().isEmpty()) {
